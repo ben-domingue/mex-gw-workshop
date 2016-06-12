@@ -1,0 +1,67 @@
+Lab 1
+
+A. Getting used to Linux
+Linux uses a bunch of short commands that one types in the command line to make things happen. Start to get a feel for this via the tutorial here:
+http://www.ee.surrey.ac.uk/Teaching/Unix/unix1.html
+This tutorial will cover the basics and then I will touch upon some things that will be especially useful this week. 
+Two notes: 
+1. The ~/hapmap3_pop folder contains the raw hapmap data. Don't put things there!
+2. Created a working directory:
+mkdir ~/wd/
+and put the files you create during the labs here. 
+
+
+-Use less to look at text file.
+The command "less" is very useful for the purposes of looking at text files. Use it to look at the Mexico HapMap data. Consider first:
+cd ~/hapmap3_pop
+less hapmap3_r2_b36_fwd.MEX.qc.poly.map
+Now try:
+less hapmap3_r2_b36_fwd.MEX.qc.poly.ped
+Notice that this isn't as helpful. Try:
+less -S hapmap3_r2_b36_fwd.MEX.qc.poly.ped 
+If you want more info on less, type:
+man less
+
+-Edit text file.
+You will need to edit text files. Let's practice by editing a toy file:
+cd ~/wd
+nano toy.txt
+To quit the program, type ctrl+X and follow the instructions. 
+NOTE: What I would suggest is that you open a local text document (now on the ec2 server) and just cut/paste most text to/from that document into the ec2 terminal.
+
+-Using grep
+grep is one of the great unix tools. We can use it to do many things, but here we will use it to find a specific SNP in the map file:
+grep rs3899498 ~/hapmap3_pop/hapmap3_r2_b36_fwd.MEX.qc.poly.map 
+What happens if I instead do:
+grep rs38993 ~/hapmap3_pop/hapmap3_r2_b36_fwd.MEX.qc.poly.map 
+Note that many things get returned. Can you figure out how to focus on just rs38993 (and not get things like rs3899340?
+
+-Using awk to extract a single column
+What if we wanted to just get the second column of the map file so that we just had the SNP names? This is a painful thing to do if you don't know some Linux tricks. 
+awk '{print $2}' ~/hapmap3_pop/hapmap3_r2_b36_fwd.MEX.qc.poly.map | head
+Note that I am using the "|" operator. This takes the output of the first command and sends it to the second program "head" which just lists the first few bits. If you wanted to save the snps, you could use:
+awk '{print $2}' ~/hapmap3_pop/hapmap3_r2_b36_fwd.MEX.qc.poly.map > /tmp/snps.txt
+The ">" operator sends output from the first command to a file (here, /tmp/snps.txt). The /tmp directory is useful for temporary storage (it gets deleted every time the machine reboots, so don't ever store anything important there!!!). 
+
+
+-Other tricks:
+Can you count the number of SNPs in our map file with "wc"?
+Can you use the "find" command to find Mexico HapMap data (when in your home directory)?
+
+
+B. Working with plink [manual: http://pngu.mgh.harvard.edu/~purcell/plink/]
+I created binary files via calls like:
+#DO NOT RUN #plink --file ~/hapmap3_pop/hapmap3_r2_b36_fwd.MEX.qc.poly   --make-bed --out ~/wd/mex
+since this can be rather time consuming. We are going to work with the binary versions I created, but we'll also look at how to go back and forth between files types as we get going.
+
+1. Perform QC  for genotyping missingness of 0.05, maf of 0.01. See how your resulting sample sizes depend upon these choices of threshold. [Remember to do this all in your ~/wd directory.]
+2. Look at missingness for markers and individuals. After computing things in plink, can you read into R and make a picture of how things look?
+3. Compute Hardy Weinberg equilibrium. How many markers are not in equilibrium? 
+4. Remove those markers that fail HWE. 
+5. Compute allele frequencies. How are they distributed? 
+6. Extract set of makers that are in linkage equilibrium. [Question: Why are correlations being computed within chromosomes?]
+7. Make combined dataset [multiple hapmap files]
+8. Use plink to manipulate the LE dataset you already created. Make (a) long, (b) transposed, and (c) binary files. Make sure to give them all different names. 
+
+Time permitting:
+-Take a look at http://www.nature.com/nprot/journal/v5/n9/full/nprot.2010.116.html and see how what we've done differs from their solutions.
