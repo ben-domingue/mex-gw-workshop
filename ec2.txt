@@ -1,3 +1,8 @@
+ben.domingue@gmail.com
+
+
+
+
 ec2 dns addresses
 
 1 ec2-54-210-215-86.compute-1.amazonaws.com
