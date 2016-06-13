@@ -1,0 +1,9 @@
+ec2 dns addresses
+
+1 ec2-54-210-215-86.compute-1.amazonaws.com
+2 ec2-54-210-213-154.compute-1.amazonaws.com
+3 ec2-54-210-206-169.compute-1.amazonaws.com
+4 ec2-54-210-193-38.compute-1.amazonaws.com
+5 ec2-52-87-171-68.compute-1.amazonaws.com
+
+
