@@ -1,0 +1,46 @@
+B. Working with plink [manual: http://pngu.mgh.harvard.edu/~purcell/plink/]
+I created binary files via calls like:
+#DO NOT RUN plink --file ~/hapmap3_pop/hapmap3_r2_b36_fwd.MEX.qc.poly   --make-bed --out ~/wd/mex
+since this can be rather time consuming. We are going to work with the binary versions I created, but we'll also look at how to go back and forth between files types as we get going.
+
+1. Perform QC  for genotyping missingness of 0.05, maf of 0.01. See how your resulting sample sizes depend upon these choices of threshold.
+2. Look at missingness for markers and individuals. After computing things in plink, can you read into R and make a picture of how things look?
+3. Compute Hardy Weinberg equilibrium. How many markers are not in equilibrium? 
+4. Remove those markers that fail HWE. 
+cd wd
+plink --bfile ceu  --geno 0.05  --maf .01 --hwe 0.001 --make-bed --out ceu2
+
+
+5. Compute allele frequencies. How are they distributed? 
+plink --bfile ceu2 --freq --out ceu-freq
+#R
+read.table("ceu-freq.frq",header=TRUE)->fr
+hist(fr$MAF)
+
+6. Extract set of makers that are in linkage equilibrium. [Question: Why are correlations being computed within chromosomes?]
+plink --bfile ceu2 --indep-pairwise 50 5 0.2 --out ceu2_le #why are correlations being computed within chrosomome?
+plink --bfile ceu2 --extract ceu2_le.prune.in --make-bed --out ceu2_le 
+?: Why am I looking at just CEU to identify markers in LE? Could I use the other groups?
+
+7. Make combined dataset [multiple hapmap files]
+plink --bfile ceu  --geno 0.05  --maf .01 --hwe 0.001 --make-bed --out ceu2
+plink --bfile yri  --geno 0.05  --maf .01 --hwe 0.001 --make-bed --out yri2
+plink --bfile mex  --geno 0.05  --maf .01 --hwe 0.001 --make-bed --out mex2
+
+#R
+read.table("ceu2.bim")->ceu
+read.table("yri2.bim")->yri
+intersect(ceu[,2],yri[,2])->snps
+read.table("mex2.bim")->mex
+intersect(snps,mex[,2])->snps
+write.table(snps,file="common_snps.txt",quote=FALSE,row.names=FALSE,col.names=FALSE)
+
+plink --bfile ceu2 --extract common_snps.txt --make-bed --out ceu_common
+plink --bfile yri2 --extract common_snps.txt --make-bed --out yri_common
+plink --bfile mex2 --extract common_snps.txt --make-bed --out mex_common
+plink --bfile ceu_common --bmerge yri_common --make-bed --out common
+plink --bfile common --bmerge mex_common --make-bed --out common
+      
+
+
+

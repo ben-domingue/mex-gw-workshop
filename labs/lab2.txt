@@ -1,0 +1,17 @@
+Lab 2
+
+A. Allele Frequencies
+1. For each of the hapmap groups we have data on, separately compute allele frequencies. How do they compare?
+2. Still working with the separate groups, extract just the SNPs on chromosome 1. Compute LD within chromosome 1. How do the SNP associations compare across the gruops? 
+
+B. Principal Components
+3. Prune for LD within a single group.
+4. With this pruned set of SNPs, compute principal components. 
+5. Compare PCs across groups.
+6. Replicate this based on a set of SNPs pruned for the other group. What differences do you note? 
+
+C. Admixture
+7. Use admixture in the joint sample ("common") to estimate the number of ancestral populations. Use only markers in LE. 
+
+D. Look at Mexico data.
+With CEU.YRI.MESTIZOS.NATIVO.550K.Common.1-22.v2.flipped data, try to recreate some of the results from 2009 PNAS paper (www.pnas.org͞cgi͞doi͞10.1073͞pnas.0903045106). Figure 2 would be a great target. You could also redo Figure 4 but using admixture instead of structure. Table S5 may also be interesting to compare to results from admixture. 
