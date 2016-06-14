@@ -1,0 +1,122 @@
+Lab 2
+
+A. Allele Frequencies
+1. For each of the hapmap groups we have data on, separately compute allele frequencies. How do they compare?
+2. Still working with the separate groups, extract just the SNPs on chromosome 1. Compute LD within chromosome 1. How do the SNP associations compare across the gruops? 
+plink --bfile yri_common --chr 1 --make-bed --out yri-chr1
+plink --bfile mex_common --chr 1 --make-bed --out mex-chr1
+plink --bfile yri-chr1 --r2 --ld-window 10 --out yri-chr1
+plink --bfile mex-chr1 --r2 --ld-window 10 --out mex-chr1
+
+#R
+read.table("yri-chr1.ld",header=TRUE)->y
+read.table("mex-chr1.ld",header=TRUE)->m
+y[,c("SNP_A","SNP_B","R2")]->y
+m[,c("SNP_A","SNP_B","R2")]->m
+names(y)[3]<-"y"
+names(m)[3]<-"m"
+merge(y,m)->r2
+summary(abs(r2$y-r2$m))
+
+
+
+B. Principal Components
+3. Prune for LD within a single group.
+4. With this pruned set of SNPs, compute principal components. 
+5. Compare PCs across groups.
+plink --bfile common --keep ceu.fam --indep-pairwise 50 5 0.2 --out common_le 
+plink --bfile common --extract common_le.prune.in --make-bed --out common_le 
+plink --bfile common_le --pca --out common_le
+
+#R
+read.table("common_le.eigenvec")->e
+substr(e[,1],1,1)->g
+plot(e[,3],e[,4],xlab="pc1",ylab="pc2",type="n")
+text(e[,3],e[,4],g)
+
+6. Replicate this based on a set of SNPs pruned for the other group. What differences do you note? 
+
+C. Admixture
+7. Use admixture in the joint sample to estimate the number of ancestral populations.
+
+
+#just going to use a subsample
+#R
+read.table("common_le.bim")->bim
+sample(1:nrow(bim),50000)->index
+write.table(bim[index,1:2],file="subset.txt",quote=FALSE,row.names=FALSE,col.names=FALSE)
+
+plink --bfile common_le --extract subset.txt --make-bed --out common_le_sub
+
+admixture common_le_sub.bed 3 #k=3 was easy to know given the structure of our data, but is hard to know when working with a generic admixed dataset
+
+#R
+read.table("common_le_sub.fam")->e
+substr(e[,1],1,1)->g
+read.table("common_le_sub.3.Q")->z
+L<-list()
+for (i in 1:3) by(z[,i],g,mean)->L[[i]]
+L
+for (i in 1:3) by(z[,i],g,sd)->L[[i]]
+L
+#still R
+par(mfrow=c(3,1))
+split(z,g)->tmp
+col<-c("black","red","green")
+for (i in 1:3) for (j in 1:length(tmp)) {
+    density(tmp[[j]][,i])->den
+    den$y/sum(den$y)->den$y
+    if (j==1) {
+       plot(den,type="l",col=col[j],xlim=c(0,1))
+    } else {
+       lines(den,col=col[j])
+    }    
+}
+legend("topleft",bty="n",names(tmp),lty=1,col=col)
+
+
+D. Look at Mexico data.
+With CEU.YRI.MESTIZOS.NATIVO.550K.Common.1-22.v2.flipped data, try to recreate some of the results from 2009 PNAS paper (http://www.pnas.org/content/106/21/8611.abstract). Figure 2 would be a great target. You could also redo Figure 4 but using admixture instead of structure. Table S5 may also be interesting to compare to results from admixture. 
+
+plink --bfile ~/mexdat/CEU.YRI.MESTIZOS.NATIVO.550K.Common.1-22.v2.flipped --indep-pairwise 50 5 0.2 --out mx_le #why are correlations being computed within chrosomome?
+plink --bfile ~/mexdat/CEU.YRI.MESTIZOS.NATIVO.550K.Common.1-22.v2.flipped --extract mx_le.prune.in --make-bed --out mx_le
+
+#R
+read.table("mx_le.bim")->bim
+sample(1:nrow(bim),10000)->index
+write.table(bim[index,1:2],file="subset.txt",quote=FALSE,row.names=FALSE,col.names=FALSE)
+
+plink --bfile mx_le --extract subset.txt --make-bed --out mx_le_sub
+admixture mx_le_sub.bed 6 
+
+
+#R, figure out who is who
+lf<-c(ceu="CEU.Illu550K.list",mes="MESTIZOS.Illu550K.list",nat="NATIVES.Illu550K.list",yri="YRI.Illu550K.list")
+L<-list()
+for (i in 1:length(lf)) {
+    read.table(paste("~/mexdat/",lf[i],sep=""),stringsAsFactors=FALSE,colClasses="character")->id
+    id[,1:2]->id
+    names(id)<-c("fam","id")
+    names(lf)[i]->id$grp
+    gsub("_sex","",id$id)->id$id
+    id->L[[i]]
+}
+data.frame(do.call("rbind",L))->grp
+read.table("mx_le_sub.fam")->fam
+match(fam[,2],grp[,2])->index
+grp$grp[index]->fam$grp
+#
+read.table("mx_le_sub.6.Q")->z
+split(z,fam$grp)->tmp
+par(mfrow=c(3,2))
+col<-c("black","red","green","blue")
+for (i in 1:6) for (j in 1:length(tmp)) {
+    density(tmp[[j]][,i])->den
+    den$y/sum(den$y)->den$y
+    if (j==1) {
+       plot(den,type="l",col=col[j],xlim=c(0,1))
+    } else {
+       lines(den,col=col[j])
+    }    
+}
+legend("topleft",bty="n",names(tmp),lty=1,col=col)
