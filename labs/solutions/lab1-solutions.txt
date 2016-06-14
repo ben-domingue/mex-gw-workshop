@@ -15,7 +15,8 @@ plink --bfile ceu  --geno 0.05  --maf .01 --hwe 0.001 --make-bed --out ceu2
 plink --bfile ceu2 --freq --out ceu-freq
 #R
 read.table("ceu-freq.frq",header=TRUE)->fr
-hist(fr$MAF)
+#hist(fr$MAF)
+summary(fr$MAR)
 
 6. Extract set of makers that are in linkage equilibrium. [Question: Why are correlations being computed within chromosomes?]
 plink --bfile ceu2 --indep-pairwise 50 5 0.2 --out ceu2_le #why are correlations being computed within chrosomome?
