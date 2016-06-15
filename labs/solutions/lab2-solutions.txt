@@ -106,9 +106,10 @@ read.table("mx_le_sub.fam")->fam
 match(fam[,2],grp[,2])->index
 grp$grp[index]->fam$grp
 #
-read.table("mx_le_sub.6.Q")->z
+read.table("mx_le_sub.6.Q")->z #if you change K=6 above to some other quantity, you'll need to change the 6s below to something else as well.
 split(z,fam$grp)->tmp
-par(mfrow=c(3,2))
+pdf("/tmp/pic.pdf")
+par(mfrow=c(2,3))
 col<-c("black","red","green","blue")
 for (i in 1:6) for (j in 1:length(tmp)) {
     density(tmp[[j]][,i])->den
@@ -120,3 +121,4 @@ for (i in 1:6) for (j in 1:length(tmp)) {
     }    
 }
 legend("topleft",bty="n",names(tmp),lty=1,col=col)
+dev.off()
