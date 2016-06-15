@@ -122,3 +122,23 @@ for (i in 1:6) for (j in 1:length(tmp)) {
 }
 legend("topleft",bty="n",names(tmp),lty=1,col=col)
 dev.off()
+
+#new stuff
+lf<-c(ceu="CEU.Illu550K.list",mes="MESTIZOS.Illu550K.list",nat="NATIVES.Illu550K.list",yri="YRI.Illu550K.list")
+L<-list()
+for (i in 1:length(lf)) {
+    read.table(paste("~/mexdat/",lf[i],sep=""),stringsAsFactors=FALSE,colClasses="character")->id
+    id[,1:2]->id
+    names(id)<-c("fam","id")
+    names(lf)[i]->id$grp
+    gsub("_sex","",id$id)->id$id
+    id->L[[i]]
+}
+data.frame(do.call("rbind",L))->grp
+read.table("mx_le_sub.fam")->fam
+match(fam[,2],grp[,2])->index
+grp$grp[index]->fam$grp
+#
+read.table("mx_le_sub.6.Q")->z #if you change K=6 above to some other quantity, you'll need to change the 6s below to something else as well.
+split(z,fam$grp)->tmp
+lapply(tmp,colMeans)
