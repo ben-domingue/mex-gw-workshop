@@ -115,7 +115,7 @@ for (i in 1:6) for (j in 1:length(tmp)) {
     density(tmp[[j]][,i])->den
     den$y/sum(den$y)->den$y
     if (j==1) {
-       plot(den,type="l",col=col[j],xlim=c(0,1))
+       plot(den,type="l",col=col[j],xlim=c(0,1),main=i)
     } else {
        lines(den,col=col[j])
     }    
