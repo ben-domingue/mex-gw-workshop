@@ -95,6 +95,7 @@ plink --bfile mx_le --recode transpose 12 --out mx_leT
 REAP -g mx_leT.tped -p mx_leT.tfam -a admix.txt -f mx_le.3.P -k 3 -t -1 -m
 
 awk '{print $2, $4, $9}' REAP_pairs_relatedness.txt > reap_pairs.txt
+
 read.table("reap_pairs.txt",header=TRUE)->k
 names(k)<-c("id1","id2","grm")
 comp.fun(k)->reap.comp
@@ -114,15 +115,32 @@ for (i in 1:length(L)) {
 L[[1]]->df
 for (i in 2:length(L)) merge(df,L[[i]],all=TRUE)->df
 
+pdf("~/plot.pdf")
 par(mfrow=c(2,2))
 for (nm in c("gcta","plink","king","reap")) {
     df[[nm]]->z
     plot(density(z,na.rm=TRUE))
 }
+dev.off()
+
+png("scatter.png",units="in",height=7,width=9,res=100)
 plot(df[,c("gcta","plink","king","reap")])
+dev.off()
+
 
 split(df,df$grp)->tmp
 fun<-function(x) cor(x[,c("gcta","plink","king","reap")],use='p')
 fun(df)
 lapply(tmp,fun)
+
+pdf("~/plot2.pdf")
+par(mfrow=c(2,2))
+for (nm in c("gcta","plink","king","reap")) {
+    df[df$grp=="mes.mes",]->tmp
+    plot(density(tmp[[nm]],na.rm=TRUE))
+    df[df$grp=="mes.nat",]->tmp
+    lines(density(tmp[[nm]],na.rm=TRUE),col="red")
+}
+dev.off()
+
 
