@@ -64,20 +64,6 @@ cor(x1[,6],x2[,6])
 ######################################################################################################
 
 #new stuff
-lf<-c(ceu="CEU.Illu550K.list",mes="MESTIZOS.Illu550K.list",nat="NATIVES.Illu550K.list",yri="YRI.Illu550K.list")
-L<-list()
-for (i in 1:length(lf)) {
-    read.table(paste("~/mexdat/",lf[i],sep=""),stringsAsFactors=FALSE,colClasses="character")->id
-    id[,1:2]->id
-    names(id)<-c("fam","id")
-    names(lf)[i]->id$grp
-    gsub("_sex","",id$id)->id$id
-    id->L[[i]]
-}
-data.frame(do.call("rbind",L))->grp
-read.table("mx_le_sub.fam")->fam
-match(fam[,2],grp[,2])->index
-grp$grp[index]->fam$grp
 
 
 #BMI
@@ -100,8 +86,63 @@ wget http://www.reprogen.org/Menarche_Nature2014_GWASMetaResults_17122014.zip
 unzip Menarche_Nature2014_GWASMetaResults_17122014.zip
 
 #bmi
-#smoke
-#education
-#height
-#cardio
+system("awk '{print $1, $2, $3, $7, $5}' SNP_gwas_mc_merge_nogc.tbl.uniq > gwas.result")
+library(HeritHelper) #see https://github.com/ben-domingue/HeritHelper
+make_pgs(plink.file="~/wd/mx_le",gwas.file="~/wd/gwas.result",out.name="~/wd/bmi",clump=FALSE,wd="/tmp/pgs-bmi/")
 
+#smoke
+system("awk '{print $2, $4, $5, $11, $9}' tag.evrsmk.tbl > gwas.result")
+library(HeritHelper) #see https://github.com/ben-domingue/HeritHelper
+make_pgs(plink.file="~/wd/mx_le",gwas.file="~/wd/gwas.result",out.name="~/wd/smoke",clump=FALSE,wd="/tmp/pgs-bmi/")
+
+#education
+system("awk '{print $1, $2, $3, $7, $5}' SSGAC_EduYears_Rietveld2013_publicrelease.txt > gwas.result")
+library(HeritHelper) #see https://github.com/ben-domingue/HeritHelper
+make_pgs(plink.file="~/wd/mx_le",gwas.file="~/wd/gwas.result",out.name="~/wd/edu",clump=FALSE,wd="/tmp/pgs-bmi/")
+
+#height
+system("awk '{print $1, $2, $3, $7, $5}' GIANT_HEIGHT_Wood_et_al_2014_publicrelease_HapMapCeuFreq.txt > gwas.result")
+library(HeritHelper) #see https://github.com/ben-domingue/HeritHelper
+make_pgs(plink.file="~/wd/mx_le",gwas.file="~/wd/gwas.result",out.name="~/wd/height",clump=FALSE,wd="/tmp/pgs-bmi/")
+
+#cardio
+system("awk '{print $1, $3, $4, $6, $8}' CARDIoGRAM_GWAS_RESULTS.txt > gwas.result")
+library(HeritHelper) #see https://github.com/ben-domingue/HeritHelper
+make_pgs(plink.file="~/wd/mx_le",gwas.file="~/wd/gwas.result",out.name="~/wd/cardio",clump=FALSE,wd="/tmp/pgs-bmi/")
+
+#menarche
+system("awk '{print $1, $2, $3, $6, $5}' Menarche_Nature2014_GWASMetaResults_17122014.txt > gwas.result")
+library(HeritHelper) #see https://github.com/ben-domingue/HeritHelper
+make_pgs(plink.file="~/wd/mx_le",gwas.file="~/wd/gwas.result",out.name="~/wd/menarche",clump=FALSE,wd="/tmp/pgs-bmi/")
+
+
+tmp<-list()
+for (nm in c("bmi","smoke","edu","height","cardio","menarche")) {
+read.table(paste(nm,".profile",sep=""),header=TRUE)->z
+z[,c(2,6)]->z
+names(z)<-c("id",nm)
+z->tmp[[nm]]
+}
+tmp[[1]]->z
+for (i in 2:length(tmp)) merge(z,tmp[[i]])->z
+
+lf<-c(ceu="CEU.Illu550K.list",mes="MESTIZOS.Illu550K.list",nat="NATIVES.Illu550K.list",yri="YRI.Illu550K.list")
+L<-list()
+for (i in 1:length(lf)) {
+    read.table(paste("~/mexdat/",lf[i],sep=""),stringsAsFactors=FALSE,colClasses="character")->id
+    id[,1:2]->id
+    names(id)<-c("fam","id")
+    names(lf)[i]->id$grp
+    gsub("_sex","",id$id)->id$id
+    id->L[[i]]
+}
+data.frame(do.call("rbind",L))->grp
+read.table("mx_le.fam")->fam
+match(fam[,2],grp[,2])->index
+grp$grp[index]->fam$grp
+fam[,c(1,2,7)]->fam
+names(fam)<-c("fam","id","grp")
+
+merge(fam,z)->z
+cor(z[,-(1:3)])
+write.table(z,file="~/scores.txt",quote=FALSE,row.names=FALSE)
